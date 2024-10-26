@@ -1,1 +1,0 @@
-DlArrayImg(getAllImgFromHtml(getDataInHtml(a)))
