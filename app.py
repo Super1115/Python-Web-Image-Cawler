@@ -15,18 +15,46 @@ requestHeaders = {'user-agent': settingsJsonData["user-agent"]}
 print("Http Request Headers:")
 print(requestHeaders)
 
+def checkAndCombineRepeatedUrl(urlA,urlB):
+    #output urlB(website) -> urlA(img)
+    urlArrayA =urlA.split("/")
+    urlArrayB = urlB.split("/")
+    returnArray = []
+    for x in urlArrayA:
+        for y in urlArrayB:
+            if x == y and x != "http:" and x != "https:":
+                returnArray.append(x)
+    if returnArray == []:
+        return None
+    else:
+        for z in returnArray:
+            urlArrayA.remove(z)
+        returnUrl = urlB
+        if returnUrl.endswith("/"):
+            returnUrl = returnUrl[1:]
+        for i in urlArrayA:
+            returnUrl= returnUrl+"/"+i
+        return returnUrl        
+        
+
 def convertUrlForDlImg(imgUrl,websiteUrl):
     if imgUrl.startswith("https://") or imgUrl.startswith("http://") :
         return imgUrl
     elif imgUrl.startswith("//"):
         return "http:"+imgUrl
     else :
-        if (imgUrl.startswith("/") & websiteUrl.endswith("/") == False) or (imgUrl.startswith("/") == False & websiteUrl.endswith("/")) :
-            return websiteUrl+imgUrl
-        elif imgUrl.startswith("/") == False & websiteUrl.endswith("/") == False:
-            return websiteUrl+"/"+imgUrl
-        elif imgUrl.startswith("/") & websiteUrl.endswith("/") :
-            return websiteUrl+imgUrl[1:]
+        checkResults = checkAndCombineRepeatedUrl(imgUrl,websiteUrl)
+        if checkResults == None:
+            if (imgUrl.startswith("/") and websiteUrl.endswith("/") == False) or (imgUrl.startswith("/") == False and websiteUrl.endswith("/")) :
+                    return websiteUrl+imgUrl
+            elif imgUrl.startswith("/") == False and websiteUrl.endswith("/") == False:
+                    return websiteUrl+"/"+imgUrl
+            elif imgUrl.startswith("/") and websiteUrl.endswith("/") :
+                    return websiteUrl[1:]+imgUrl
+        else:
+            return checkResults
+            
+            
 
 
 
@@ -51,14 +79,14 @@ def DlImg(url):
         os.mkdir(settingsJsonData["downloadDirectory"])
     
     try:
-        with open(f"{settingsJsonData["downloadDirectory"]}/{url.split("/")[-1]}","wb") as file:
-            print(f"Trying to Download from {url}")
-            image = requests.get(url)
-            if image.status_code == 200:
+        image = requests.get(url)
+        if image.status_code == 200:
+            print(f"Downloaded From {url}")
+            with open(f"{settingsJsonData["downloadDirectory"]}/{url.split("/")[-1]}","wb") as file:
+                print(f"Trying to Download from {url}")
                 file.write(image.content)
-                print(f"Downloaded From {url}")
-            else:
-                print(f"Unable to Download File, Status Code {image.status_code}")
+        else:
+            print(f"Unable to Download File, Status Code {image.status_code}")
     except requests.exceptions.RequestException as e:
         print("Unable to Download Image:", e)
 
